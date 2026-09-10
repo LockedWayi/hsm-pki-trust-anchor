@@ -10,25 +10,26 @@ the public half of `inventory-signing-key-v1`, which signs that project's
 ## Why it is not in the project it protects
 
 The inventory, its detached signature, and the key that verifies that
-signature used to be three files in one tree. That arrangement verifies that
-the three files agree with each other — which they would also do if someone
-who could write to the repository rewrote all three together. The signature
-was real; what was missing is that the anchor was not independent of the
-thing it authenticates.
+signature used to be three files in one tree. That arrangement shows the
+three files agree with each other. They would also agree if someone who
+could write to the repository rewrote all three together.
 
-Moving the anchor out is the fix. To change what a verifier trusts you now
-have to compromise **two** repositories with separate protection, rather than
-edit one tree.
+Moving the anchor out changes one thing. Changing this file in place needs
+write access to this repository, where force-pushes and deletions are
+refused. Replacing the anchor with another one needs the consumer to accept
+new inputs: a different repository, commit or digest. A consumer who copies
+those inputs from the consuming repository's README trusts that repository
+for that step.
 
 ## What is guaranteed here
 
-- The file changes only through a pull request that passes this repository's
-  required checks. Force-pushes and branch deletion are refused, and that
-  applies to the owner too.
-- Consumers pin a **commit SHA**, never a branch. A branch is a pointer that
-  can be moved; a commit is the bytes themselves.
-- Consumers also pin the file's **SHA-256**, so a fetch that returns anything
-  else fails closed rather than proceeding with whatever arrived.
+- The file changes only through a pull request. No review is required to
+  merge one, and there are no status checks. The protection is that
+  force-pushes and branch deletion are refused, for the owner too.
+- Consumers supply a **commit SHA**, never a branch. A branch is a pointer
+  that can be moved; a commit is the bytes.
+- Consumers also supply the file's **SHA-256**, so a fetch that returns
+  anything else fails closed.
 
 ## Rotation
 
@@ -45,7 +46,6 @@ curl -fsSL https://raw.githubusercontent.com/LockedWayi/hsm-pki-trust-anchor/<co
   | sha256sum
 ```
 
-Compare that digest with the one pinned in the consuming repository. If they
-disagree, stop — do not fall back to a copy found anywhere else. An
-unreachable or unexpected anchor must fail closed; that is the entire reason
-this repository exists.
+Compare that digest with the one you hold. If they disagree, stop. Do not
+fall back to a copy found anywhere else. An unreachable or unexpected anchor
+fails closed.
